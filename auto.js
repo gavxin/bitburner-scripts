@@ -535,7 +535,7 @@ export async function main(ns) {
     return (agents.length == 1) ? unit_count_float : unit_count;
   }
 
-  async function super_run(agents, target, w, g, h, unit_count = 1) {
+  async function super_run(agents, target, w, g, h, unit_count = 1, dry_run = false) {
     const arr = [
       { script: "weaken.js", ram: ns.getScriptRam("weaken.js"), time: ns.getWeakenTime(target), time_ratio: weaken_time_ratio, threads: w },
       { script: "grow.js", ram: ns.getScriptRam("grow.js"), time: ns.getGrowTime(target), time_ratio: grow_time_ratio, threads: g },
@@ -554,7 +554,9 @@ export async function main(ns) {
     }
 
     agents.sort((a, b) => b.max_ram - a.max_ram);
-    agents.forEach(a => my_killall(a.host));
+    if (!dry_run) {
+      agents.forEach(a => my_killall(a.host));
+    }
 
     unit_count = Math.floor(unit_count);
 
@@ -601,7 +603,9 @@ export async function main(ns) {
             // no hacking, do not wait
             start_time = tick * tick_time + tick * i / 3;
           }
-          ns.exec(arr[i].script, agents[agent_index].host, arr[i].threads, target, start_time, exact_time, tick);
+          if (!dry_run) {
+            ns.exec(arr[i].script, agents[agent_index].host, arr[i].threads, target, start_time, exact_time, tick);
+          }
           agent_used_mem += mem_to_use;
         }
       }
@@ -635,10 +639,11 @@ export async function main(ns) {
     const total_mem = agents.reduceRight((s, a) => s + a.max_ram, 0);
     const unit_mem = arr.reduceRight((s, c) => s + c.threads * c.ram * c.time_ratio, 0);
     let unit_count = Math.floor(total_mem / unit_mem);
-    for (; unit_count > 0 && !await super_run(agents, target, w, g, h, unit_count);
+    for (; unit_count > 0 && !await super_run(agents, target, w, g, h, unit_count, true);
       unit_count--) {
       await ns.asleep(100);
     }
+    await super_run(agents, target, w, g, h, unit_count);
     ns.tprint(`super hack ${target} unit_count:${unit_count}`);
   }
 
