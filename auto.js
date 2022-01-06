@@ -510,9 +510,15 @@ export async function main(ns) {
       }
     }
   }
-  const weaken_time_ratio = 4;
-  const grow_time_ratio = 4;
-  const hack_time_ratio = 1;
+
+  // Only use when move to new BitNode
+  // const weaken_time_ratio = 4;
+  // const grow_time_ratio = 4;
+  // const hack_time_ratio = 1;
+
+  const weaken_time_ratio = 20;
+  const grow_time_ratio = 16;
+  const hack_time_ratio = 5;
 
   // const time_ratio_divide = 5;
   // const weaken_time_ratio = 20 / time_ratio_divide;
